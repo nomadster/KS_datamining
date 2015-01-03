@@ -1,0 +1,17 @@
+{
+  "name": "KSDataSetFlattener",
+  "version": "1.0.0",
+  "description": "Let's flatten this dataset (http://werobots.io/kickstarter-datasets/) so we can use them in more \"advanced\" datamining tools",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alessandro Lensi (nomadster@gmail.com)",
+  "license": "ISC",
+  "dependencies": {
+    "JSONStream": "^0.10.0",
+    "event-stream": "^3.2.1",
+    "flat": "^1.3.0",
+    "lodash": "^2.4.1"
+  }
+}
