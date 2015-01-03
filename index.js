@@ -6,16 +6,28 @@ var fs = require('fs'),
     _ = require('lodash');
 
 var uglytrick = false,
+    separator = ',',
+    marker = '"',
+    filename = 'file.json',
+    outputFile = 'output.csv',
     writeStream  = fs.createWriteStream('output.csv');
+function reduce(obj){
+    return _.reduce(obj, function(acc, val){
+	val = _(val).toString().replace(/”“"\n/g,'');
+	acc = acc + marker + val + marker + separator;
+	return acc;
+	},'') + '\n';
+}
 
-fs.createReadStream('file.json').pipe(jsons.parse('*.projects.*'))
+
+fs.createReadStream(filename).pipe(jsons.parse('*.projects.*'))
   .pipe(es.mapSync(function (data) {
     var flattened = flat(data);
     if(uglytrick === false){
       var added = _(Object.keys(flattened)).toString()+'\n';
       uglytrick = true;
-      return added + _.reduce(flattened, function(acc,value){ acc += value + ','; return acc;},'') + '\n';
+      return added + reduce(flattened);
     }
-    return _.reduce(flattened, function(acc,value){ acc += value + ','; return acc;},'') + '\n';
+    return reduce(flattened);
   }))
   .pipe(writeStream);
