@@ -13,7 +13,7 @@ var uglytrick = false,
     writeStream  = fs.createWriteStream('output.csv');
 function reduce(obj){
     return _.reduce(obj, function(acc, val){
-	val = _(val).toString().replace(/”“"\n/g,'');
+	val = _(val).toString().replace(/[”“"\n]/g,'');
 	acc = acc + marker + val + marker + separator;
 	return acc;
 	},'') + '\n';
