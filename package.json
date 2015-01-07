@@ -6,7 +6,17 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Alessandro Lensi (nomadster@gmail.com)",
+  "author": {
+    "name": "Alessandro Lensi",
+    "email": "nomadster@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nomadster/KS_datamining"
+  },
+  "bugs": {
+    "url": "https://github.com/nomadster/KS_datamining/issues"
+  },
   "license": "ISC",
   "dependencies": {
     "JSONStream": "^0.10.0",
