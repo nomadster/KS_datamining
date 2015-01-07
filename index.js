@@ -1,3 +1,4 @@
+'use strict';
 /* Let's parse this fucking dataset and make it flat: http://werobots.io/kickstarter-datasets/ */
 var fs = require('fs'),
     jsons = require('JSONStream'),
