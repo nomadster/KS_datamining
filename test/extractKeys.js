@@ -35,4 +35,15 @@ describe('extractKeys()', function(){
         debug(extractKeys(fxt));
         extractKeys(fxt).should.eql(['one','two','three','four']);
     });
+
+    it('should not count duplicate keys twice', function(){
+        var fxt = [
+            {single: 1},
+            {single: 1},
+            {single: 1},
+            {single: 1}
+        ];
+        debug(extractKeys(fxt));
+        extractKeys(fxt).should.eql(['single']);
+    });
 })
