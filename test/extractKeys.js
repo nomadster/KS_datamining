@@ -27,10 +27,12 @@ describe('extractKeys()', function(){
         extractKeys(fxt).should.eql(['one','two']);
     });
 
-    it('should work with arrays too', function(){
+    it('should ignore strings and numbers in arrays, but not objects', function(){
         var fxt = [
             {one: 1, two: 2},
-            {three: 3, four: 42}
+            {three: 3, four: 42},
+            'string',
+            1
         ];
         debug(extractKeys(fxt));
         extractKeys(fxt).should.eql(['one','two','three','four']);
@@ -45,5 +47,11 @@ describe('extractKeys()', function(){
         ];
         debug(extractKeys(fxt));
         extractKeys(fxt).should.eql(['single']);
+    });
+
+    it('should work with nested arrays too', function(){
+        var fxt = [ [{one:1}], [{two: 2}, 3]];
+        debug(extractKeys(fxt));
+        extractKeys(fxt).should.eql(['one','two']);
     });
 })
