@@ -1,34 +1,62 @@
 'use strict';
-/* Let's parse this fucking dataset and make it flat: http://werobots.io/kickstarter-datasets/ */
 var fs = require('fs'),
     jsons = require('JSONStream'),
     es = require('event-stream'),
     flat = require('flat'),
     _ = require('lodash');
 
-var uglytrick = false,
-    separator = ',',
-    marker = '"',
-    filename = 'file.json',
+
+var filename = 'file.json',
     outputFile = 'output.csv',
-    writeStream  = fs.createWriteStream('output.csv');
-function reduce(obj){
-    return _.reduce(obj, function(acc, val){
-	val = _(val).toString().replace(/[”“"\n]/g,'');
-	acc = acc + marker + val + marker + separator;
-	return acc;
-	},'') + '\n';
+    missingValueString = '?',
+    marker = '"',
+    separator = ',',
+    uglytrick = true,
+    writeStream = fs.createWriteStream(outputFile);
+
+var allKeys = [];
+if (!fs.statSync('./allKeys.json')) {
+    var readStream = fs.createReadStream(filename);
+    readStream.pipe(jsons.parse('*.projects.*'))
+        .pipe(es.mapSync(function (data) {
+            var currentKeys = _.keys(flat(data));
+            for (var i = 0; i < currentKeys.length; ++i) {
+                if (!_.contains(allKeys, currentKeys[i])) {
+                    allKeys.push(currentKeys[i]);
+                }
+            }
+        }));
+
+    readStream.on('end', function () {
+        fs.writeFileSync('./allKeys.json', JSON.stringify(allKeys));
+        readStream.close();
+    });
+} else {
+    allKeys = JSON.parse(fs.readFileSync('./allKeys.json', 'utf8'));
+}
+
+//"Luddatamainin"
+function checkValue(obj, key) {
+    return _.has(obj, key) ?
+        _(obj[key]).toString().replace(/[”“"\n]/g, '') : missingValueString;
+}
+
+function reduce(obj) {
+    var str = '';
+    for (var i = 0; i < allKeys.length; ++i) {
+        str = str + marker + checkValue(obj, allKeys[i]) + marker + separator;
+    }
+    return str + '\n';
 }
 
 
 fs.createReadStream(filename).pipe(jsons.parse('*.projects.*'))
-  .pipe(es.mapSync(function (data) {
-    var flattened = flat(data);
-    if(uglytrick === false){
-      var added = _(Object.keys(flattened)).toString()+'\n';
-      uglytrick = true;
-      return added + reduce(flattened);
-    }
-    return reduce(flattened);
-  }))
-  .pipe(writeStream);
+    .pipe(es.mapSync(function (data) {
+        var flattened = flat(data);
+        if (uglytrick) {
+            uglytrick = false;
+            return allKeys.join(',') + '\n';
+        }
+        return reduce(flattened);
+    }))
+    .pipe(writeStream);
