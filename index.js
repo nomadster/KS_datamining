@@ -15,7 +15,7 @@ var filename = 'file.json',
     writeStream = fs.createWriteStream(outputFile);
 
 var allKeys = [];
-if (!fs.statSync('./allKeys.json')) {
+if (!fs.existsSync('./allKeys.json')) {
     var readStream = fs.createReadStream(filename);
     readStream.pipe(jsons.parse('*.projects.*'))
         .pipe(es.mapSync(function (data) {
