@@ -3,7 +3,8 @@ var fs = require('fs'),
     jsons = require('JSONStream'),
     es = require('event-stream'),
     flat = require('flat'),
-    _ = require('lodash');
+    _ = require('lodash'),
+    debug = require('debug')('DataMainin');
 
 
 var filename = 'file.json',
@@ -15,25 +16,6 @@ var filename = 'file.json',
     writeStream = fs.createWriteStream(outputFile);
 
 var allKeys = [];
-if (!fs.existsSync('./allKeys.json')) {
-    var readStream = fs.createReadStream(filename);
-    readStream.pipe(jsons.parse('*.projects.*'))
-        .pipe(es.mapSync(function (data) {
-            var currentKeys = _.keys(flat(data));
-            for (var i = 0; i < currentKeys.length; ++i) {
-                if (!_.contains(allKeys, currentKeys[i])) {
-                    allKeys.push(currentKeys[i]);
-                }
-            }
-        }));
-
-    readStream.on('end', function () {
-        fs.writeFileSync('./allKeys.json', JSON.stringify(allKeys));
-        readStream.close();
-    });
-} else {
-    allKeys = JSON.parse(fs.readFileSync('./allKeys.json', 'utf8'));
-}
 
 //"Luddatamainin"
 function checkValue(obj, key) {
@@ -49,14 +31,44 @@ function reduce(obj) {
     return str + '\n';
 }
 
+var transform = function() {
+    debug('Inizio la trasformazione in csv');
+    fs.createReadStream(filename).pipe(jsons.parse('*.projects.*'))
+        .pipe(es.mapSync(function (data) {
+            var flattened = flat(data);
+            if (uglytrick) {
+                uglytrick = false;
+                return allKeys.join(',') + '\n';
+            }
+            return reduce(flattened);
+        }))
+        .pipe(writeStream);
+};
 
-fs.createReadStream(filename).pipe(jsons.parse('*.projects.*'))
-    .pipe(es.mapSync(function (data) {
-        var flattened = flat(data);
-        if (uglytrick) {
-            uglytrick = false;
-            return allKeys.join(',') + '\n';
-        }
-        return reduce(flattened);
-    }))
-    .pipe(writeStream);
+
+if (!fs.existsSync('./allKeys.json')) {
+    debug('Non esiste allKeys.json, lo creo');
+    var readStream = fs.createReadStream(filename);
+    readStream.pipe(jsons.parse('*.projects.*'))
+        .pipe(es.mapSync(function (data) {
+            var currentKeys = _.keys(flat(data));
+            for (var i = 0; i < currentKeys.length; ++i) {
+                if (!_.contains(allKeys, currentKeys[i])) {
+                    allKeys.push(currentKeys[i]);
+                }
+            }
+        }));
+
+    readStream.on('end', function () {
+        debug('Terminata creazione allKeys.json. Lo salvo su file');
+        fs.writeFileSync('./allKeys.json', JSON.stringify(allKeys));
+        readStream.close();
+        transform();
+    });
+} else {
+    debug('allKeys.json esiste, lo parso');
+    allKeys = JSON.parse(fs.readFileSync('./allKeys.json', 'utf8'));
+    transform();
+}
+
+
